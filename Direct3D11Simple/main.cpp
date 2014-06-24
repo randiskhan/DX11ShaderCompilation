@@ -62,7 +62,7 @@ HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow )
 
 	// Create window
 	g_hInst = hInstance;
-	RECT rc = { 0, 0, 640, 480 };
+	RECT rc = { 0, 0, 1000, 750 };
 	AdjustWindowRect( &rc, WS_OVERLAPPEDWINDOW, FALSE );
 	g_hWnd = CreateWindow( L"WindowClass", L"Direct3D 11 Simple", WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
@@ -123,16 +123,12 @@ HRESULT InitDevice()
 	{
 		D3D_DRIVER_TYPE_HARDWARE,
 		D3D_DRIVER_TYPE_WARP,
-		D3D_DRIVER_TYPE_REFERENCE,
 	};
 	UINT numDriverTypes = ARRAYSIZE( driverTypes );
 
 	D3D_FEATURE_LEVEL featureLevels[] =
 	{
-		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
 	};
 	UINT numFeatureLevels = ARRAYSIZE( featureLevels );
 
@@ -156,25 +152,11 @@ HRESULT InitDevice()
 		hr = D3D11CreateDeviceAndSwapChain( nullptr, g_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
 			D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext );
 
-		if ( hr == E_INVALIDARG )
-		{
-			// DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1 so we need to retry without it
-			hr = D3D11CreateDeviceAndSwapChain( nullptr, g_driverType, nullptr, createDeviceFlags, &featureLevels[1], numFeatureLevels - 1,
-				D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext );
-		}
-
 		if( SUCCEEDED( hr ) )
 			break;
 	}
 	if( FAILED( hr ) )
 		return hr;
-
-	// Obtain the Direct3D 11.1 versions if available
-	hr = g_pd3dDevice->QueryInterface( __uuidof( ID3D11Device1 ), reinterpret_cast<void**>( &g_pd3dDevice1 ) );
-	if ( SUCCEEDED(hr) )
-	{
-		(void)g_pImmediateContext->QueryInterface( __uuidof( ID3D11DeviceContext1 ), reinterpret_cast<void**>( &g_pImmediateContext1 ) );
-	}
 
 	// Create a render target view
 	ID3D11Texture2D* pBackBuffer = nullptr;
@@ -355,8 +337,7 @@ HRESULT InitDevice()
 		return hr;
 
 	// Initialize the world matrix
-	g_World1 = XMMatrixIdentity();
-	g_World2 = XMMatrixIdentity();
+	g_World = XMMatrixIdentity();
 
 	// Initialize the view matrix
 	XMVECTOR Eye = XMVectorSet( 0.0f, 1.0f, -5.0f, 0.0f );
@@ -384,9 +365,7 @@ void CleanupDevice()
 	if( g_pDepthStencilView ) g_pDepthStencilView->Release();
 	if( g_pRenderTargetView ) g_pRenderTargetView->Release();
 	if( g_pSwapChain ) g_pSwapChain->Release();
-	if( g_pImmediateContext1 ) g_pImmediateContext1->Release();
 	if( g_pImmediateContext ) g_pImmediateContext->Release();
-	if( g_pd3dDevice1 ) g_pd3dDevice1->Release();
 	if( g_pd3dDevice ) g_pd3dDevice->Release();
 }
 
@@ -431,15 +410,7 @@ void Frame()
 	}
 
 	// 1st Cube: Rotate around the origin
-	g_World1 = XMMatrixRotationY( t );
-
-	// 2nd Cube:  Rotate around origin
-	XMMATRIX mSpin = XMMatrixRotationZ( -t );
-	XMMATRIX mOrbit = XMMatrixRotationY( -t * 2.0f );
-	XMMATRIX mTranslate = XMMatrixTranslation( -4.0f, 0.0f, 0.0f );
-	XMMATRIX mScale = XMMatrixScaling( 0.3f, 0.3f, 0.3f );
-
-	g_World2 = mScale * mSpin * mTranslate * mOrbit;
+	g_World = XMMatrixRotationY( t );
 
 	// Clear the back buffer
 	g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, Colors::MidnightBlue );
@@ -448,26 +419,16 @@ void Frame()
 	g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 	// Update variables for the first cube
-	ConstantBuffer cb1;
-	cb1.mWorld = XMMatrixTranspose( g_World1 );
-	cb1.mView = XMMatrixTranspose( g_View );
-	cb1.mProjection = XMMatrixTranspose( g_Projection );
-	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0, nullptr, &cb1, 0, 0 );
+	ConstantBuffer cb;
+	cb.mWorld = XMMatrixTranspose( g_World );
+	cb.mView = XMMatrixTranspose( g_View );
+	cb.mProjection = XMMatrixTranspose( g_Projection );
+	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0, nullptr, &cb, 0, 0 );
 
 	// Render the first cube
 	g_pImmediateContext->VSSetShader( g_pVertexShader, nullptr, 0 );
 	g_pImmediateContext->VSSetConstantBuffers( 0, 1, &g_pConstantBuffer );
 	g_pImmediateContext->PSSetShader( g_pPixelShader, nullptr, 0 );
-	g_pImmediateContext->DrawIndexed( 36, 0, 0 );
-
-	// Update variables for the second cube
-	ConstantBuffer cb2;
-	cb2.mWorld = XMMatrixTranspose( g_World2 );
-	cb2.mView = XMMatrixTranspose( g_View );
-	cb2.mProjection = XMMatrixTranspose( g_Projection );
-	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0, nullptr, &cb2, 0, 0 );
-
-	// Render the second cube
 	g_pImmediateContext->DrawIndexed( 36, 0, 0 );
 
 	// Present our back buffer to our front buffer
