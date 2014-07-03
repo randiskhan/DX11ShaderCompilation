@@ -209,9 +209,20 @@ HRESULT InitDevice()
 	vp.TopLeftY = 0;
 	g_pImmediateContext->RSSetViewports( 1, &vp );
 
-	// Compile the vertex shader
+	// Vertex shader
 	ID3DBlob* pVSBlob = nullptr;
-	hr = CompileShaderFromFile( L"shader.fx", "VS", "vs_4_0", &pVSBlob );
+#ifdef PREBUILD_SHADER
+	// Create the vertex shader from precompiled cso file.
+	hr = D3DReadFileToBlob(L"vs.cso", &pVSBlob);
+	if( SUCCEEDED(hr) )
+		g_pd3dDevice->CreateVertexShader(
+			pVSBlob->GetBufferPointer(), 
+			pVSBlob->GetBufferSize(), 
+			nullptr, 
+			&g_pVertexShader);
+#else
+	// Compile the vertex shader
+	hr = CompileShaderFromFile( L"vs.fx", "VS", "vs_4_0", &pVSBlob );
 	if( FAILED( hr ) )
 	{
 		MessageBox( nullptr,
@@ -220,10 +231,15 @@ HRESULT InitDevice()
 	}
 
 	// Create the vertex shader
-	hr = g_pd3dDevice->CreateVertexShader( pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShader );
+	hr = g_pd3dDevice->CreateVertexShader( 
+		pVSBlob->GetBufferPointer(), 
+		pVSBlob->GetBufferSize(), 
+		nullptr,
+		&g_pVertexShader );
+#endif
 	if( FAILED( hr ) )
 	{
-		pVSBlob->Release();
+		if(pVSBlob) pVSBlob->Release();
 		return hr;
 	}
 
@@ -247,7 +263,17 @@ HRESULT InitDevice()
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
-	hr = CompileShaderFromFile( L"shader.fx", "PS", "ps_4_0", &pPSBlob );
+#ifdef PREBUILD_SHADER
+	// Create the vertex shader from precompiled cso file.
+	hr = D3DReadFileToBlob(L"ps.cso", &pPSBlob);
+	if( SUCCEEDED(hr) )
+		g_pd3dDevice->CreatePixelShader(
+			pPSBlob->GetBufferPointer(), 
+			pPSBlob->GetBufferSize(), 
+			nullptr, 
+			&g_pPixelShader);
+#else
+	hr = CompileShaderFromFile( L"ps.fx", "PS", "ps_4_0", &pPSBlob );
 	if( FAILED( hr ) )
 	{
 		MessageBox( nullptr,
@@ -256,7 +282,12 @@ HRESULT InitDevice()
 	}
 
 	// Create the pixel shader
-	hr = g_pd3dDevice->CreatePixelShader( pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader );
+	hr = g_pd3dDevice->CreatePixelShader( 
+		pPSBlob->GetBufferPointer(), 
+		pPSBlob->GetBufferSize(), 
+		nullptr, 
+		&g_pPixelShader );
+#endif
 	pPSBlob->Release();
 	if( FAILED( hr ) )
 		return hr;
