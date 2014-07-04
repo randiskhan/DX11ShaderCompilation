@@ -4,6 +4,7 @@ del /q /a:h *.suo
 del /q *.sdf
 del /q *.ncb
 del /q *.user
+del /q *.cso
 rd /s /q bin
 rd /s /q obj
 rd /s /q buildtimedebug

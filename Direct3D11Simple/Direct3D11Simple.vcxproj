@@ -229,7 +229,8 @@ copy “$(ProjectDir)*.fx” “$(TargetDir)”</Command>
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy “$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL” “$(TargetDir)”</Command>
+      <Command>copy “$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL” “$(TargetDir)”
+copy “$(ProjectDir)*.cso” “$(TargetDir)”</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RuntimeDebug|X64'">
@@ -382,7 +383,8 @@ copy “$(ProjectDir)*.fx” “$(TargetDir)”</Command>
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy “$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL” “$(TargetDir)”</Command>
+      <Command>copy “$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL” “$(TargetDir)”
+copy “$(ProjectDir)*.cso” “$(TargetDir)”</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RuntimeRelease|X64'">
@@ -529,6 +531,8 @@ copy “$(ProjectDir)*.fx” “$(TargetDir)”</Command>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='BuildtimeDebug|Win32'">false</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='BuildtimeRelease|Win32'">false</DeploymentContent>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='BuildtimeDebug|Win32'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='BuildtimeRelease|Win32'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="vs.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RuntimeDebug|Win32'">true</ExcludedFromBuild>
@@ -545,6 +549,8 @@ copy “$(ProjectDir)*.fx” “$(TargetDir)”</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RuntimeRelease|Win32'">vs.fx</Outputs>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='RuntimeRelease|Win32'">false</DeploymentContent>
       <FileType>Document</FileType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='BuildtimeDebug|Win32'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='BuildtimeRelease|Win32'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
