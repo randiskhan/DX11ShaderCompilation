@@ -209,6 +209,9 @@ HRESULT InitDevice()
 	vp.TopLeftY = 0;
 	g_pImmediateContext->RSSetViewports( 1, &vp );
 
+	// If PREBUILD_SHADER is defined, then the shaders are compiled at build time.
+	// If PREBUILD_SHADER is not defined, the shaders are compiled at run time.
+#pragma region Shader compilation logic 
 	// Vertex shader
 	ID3DBlob* pVSBlob = nullptr;
 #ifdef PREBUILD_SHADER
@@ -291,6 +294,7 @@ HRESULT InitDevice()
 	pPSBlob->Release();
 	if( FAILED( hr ) )
 		return hr;
+#pragma endregion
 
 	// Create vertex buffer
 	SimpleVertex vertices[] =

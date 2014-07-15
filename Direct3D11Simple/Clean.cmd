@@ -1,3 +1,4 @@
+REM Script for cleaning solution/project directory.
 @echo off
 
 del /q /a:h *.suo
