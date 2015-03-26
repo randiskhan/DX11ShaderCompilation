@@ -50,8 +50,8 @@ XMMATRIX                g_World;
 XMMATRIX                g_View;
 XMMATRIX                g_Projection;
 
-HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow );
+HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 HRESULT InitDevice();
 void CleanupDevice();
-LRESULT CALLBACK    WndProc( HWND, UINT, WPARAM, LPARAM );
+LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 void Frame();
